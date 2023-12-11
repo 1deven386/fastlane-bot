@@ -7,8 +7,8 @@ Licensed under MIT
 NOTE: this class is not part of the API of the Carbon protocol, and you must expect breaking
 changes even in minor version updates. Use at your own risk.
 """
-__VERSION__ = "3.3.1"
-__DATE__ = "05/Oct/2023"
+__VERSION__ = "3.4"
+__DATE__ = "12/Dec/2023"
 
 from dataclasses import dataclass, field, asdict, InitVar
 from .simplepair import SimplePair as Pair
@@ -841,7 +841,10 @@ class ConstantProductCurve(CurveBase):
             constr="uv3",
             params=params,
         )
-
+    
+    # minimun range width (pa/pb-1)  for carbon curves and sqrt thereof
+    CARBON_MIN_RANGEWIDTH  = 1e-6 
+    
     @classmethod
     def from_carbon(
         cls,
@@ -859,6 +862,7 @@ class ConstantProductCurve(CurveBase):
         descr=None,
         params=None,
         isdydx=True,
+        minrw=None,
     ):
         """
         constructor: from a single Carbon order (see class docstring for other parameters)*
@@ -871,6 +875,7 @@ class ConstantProductCurve(CurveBase):
         :B:         alternative to pa, pb: B = sqrt(pb) in dy/dy
         :tkny:      token y
         :isdydx:    if True prices in dy/dx, if False in quote direction of the pair
+        :minrw:     minimum perc width (pa/pb-1) of range (default CARBON_MIN_RANGEWIDTH)
 
         *Note that ALL parameters are mandatory, except that EITHER pa, bp OR A, B
         must be given but not both; we do not correct for incorrect assignment of
@@ -888,7 +893,10 @@ class ConstantProductCurve(CurveBase):
         # assert not fee is None, "fee must not be None"
         # assert not cid is None, "cid must not be None"
         # assert not descr is None, "descr must not be None"
-
+        
+        if minrw is None:
+            minrw = cls.CARBON_MIN_RANGEWIDTH
+        
         # if yint is None:
         #     yint = y
         assert y <= yint, "y must be <= yint"
@@ -927,15 +935,21 @@ class ConstantProductCurve(CurveBase):
                 if not tkny == tknq:
                     pa, pb = 1 / pa, 1 / pb
 
-            # zero-width ranges are somewhat extended for numerical stability
+            # small and zero-width ranges are extended for numerical stability
             pa0, pb0 = pa, pb
+            if pa/pb-1 < minrw:
+                pa = pb = sqrt(pa*pb)
+                assert pa == pb, "just making sure"
             if pa == pb:
-                pa *= 1.0000001
-                pb /= 1.0000001
+                # pa *= 1.0000001
+                # pb /= 1.0000001
+                rw_multiplier = sqrt(1+minrw)
+                pa *= rw_multiplier
+                pb /= rw_multiplier
 
             # validation
-            if not pa > pb:
-                raise cls.CPCValidationError(f"pa > pb required ({pa}, {pb})")
+            if not pa/pb - 1 >= minrw*0.99:
+                raise cls.CPCValidationError(f"pa +> pb required ({pa}, {pb}, {pa/pb-1}, {minrw})")
 
             # finally set A, B
             A = sqrt(pa) - sqrt(pb)
@@ -954,7 +968,7 @@ class ConstantProductCurve(CurveBase):
         yasym_times_A = yint * B
         kappa_times_A = yint**2 / A
 
-        params0 = dict(y=y, yint=yint, A=A0, B=B, pa=pa0, pb=pb0)
+        params0 = dict(y=y, yint=yint, A=A0, B=B, pa=pa0, pb=pb0, minrw=minrw)
         if params is None:
             params = AttrDict(params0)
         else:
@@ -1625,13 +1639,15 @@ class CPCContainer:
         """returns the scale of tkn"""
         return self.tokenscale.scale(tkn)
 
-    def asdicts(self):
+    def as_dicts(self):
         """returns list of dictionaries representing the curves"""
         return [c.asdict() for c in self.curves]
-
-    def asdf(self):
+    asdicts = as_dicts # legacy name
+    
+    def as_df(self):
         """returns pandas dataframe representing the curves"""
         return pd.DataFrame.from_dict(self.asdicts()).set_index("cid")
+    asdf = as_df # legacy name
 
     @classmethod
     def from_dicts(cls, dicts, *, tokenscale=None):
