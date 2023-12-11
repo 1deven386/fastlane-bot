@@ -14,8 +14,8 @@ Licensed under MIT
 This module is still subject to active research, and comments and suggestions are welcome. 
 The corresponding author is Stefan Loesch <stefan@bancor.network>
 """
-__VERSION__ = "5.2"
-__DATE__ = "15/Sep/2023"
+__VERSION__ = "5.2.1"
+__DATE__ = "11/Dec/2023"
 
 from dataclasses import dataclass, field, fields, asdict, astuple, InitVar
 import pandas as pd
@@ -345,6 +345,16 @@ class MargPOptimizer(CPCArbOptimizer):
                 plog10 += dplog10
                 p = np.exp(plog10 * np.log(10))
                 criterium = np.linalg.norm(dplog10)
+                    # the criterium is the norm of the change in log prices
+                    # in other words, it is something like an "average percentage change" of prices
+                    # this is not quite what we want though because if we have highly levered curves,
+                    # then even small percentage changes in prices can be important
+                    # memo item: our REAL criterium is that we want all d_tokens to be zero
+                    # however, because of price differences in crypto we can't compare numbers
+                    # in different token denominations as there is a range of at least 10**10
+                    # between say tokens like BTC and tokens like SHIB.
+                    # In other words: if we want to say |d_tokens| < eps the eps must have a proper
+                    # unit (ideally USD); here |.| is any reasonable norm, eg L1, L2, Linf
                 
                 # ...print out some info if requested...
                 if P("verbose"):
