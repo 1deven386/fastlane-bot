@@ -14,8 +14,8 @@ Licensed under MIT
 This module is still subject to active research, and comments and suggestions are welcome. 
 The corresponding author is Stefan Loesch <stefan@bancor.network>
 """
-__VERSION__ = "5.2.1"
-__DATE__ = "11/Dec/2023"
+__VERSION__ = "5.3"
+__DATE__ = "12/Dec/2023"
 
 from dataclasses import dataclass, field, fields, asdict, astuple, InitVar
 import pandas as pd
@@ -73,8 +73,13 @@ class MargPOptimizer(CPCArbOptimizer):
     MO_MINIMAL = "minimal"
     MO_FULL = "full"
 
-    MOEPS = 1e-6
-    MOMAXITER = 50
+    MOCRITR = "rel"         # relative convergence criterion used
+    MOCRITA = "abs"         # ditto absolute
+    MOEPS = 1e-6            # relative convergence threshold
+    MOEPSAUNIT = "USD"      # absolute convergence unit
+    MOEPSA = 1              # absolute convergence threshold (unit: MOCAUNIT)
+    
+    MOMAXITER = 50          
     
     class OptimizationError(Exception): pass
     class ConvergenceError(OptimizationError): pass
@@ -94,8 +99,11 @@ class MargPOptimizer(CPCArbOptimizer):
                             :MO_FULL:          full result
                             :None:             alias for MO_FULL
         :params:            dict of parameters
-                            :eps:              precision parameter for accepting the result (default: 1e-6)
-                            :maxiter:          maximum number of iterations (default: 100)
+                            :crit:             criterion MOCRITR (relative, default) or MOCRITA (absolute)
+                            :eps:              relative convergence threshold (default: MOEPS)
+                            :epsa:             absolute convergence threshold (default: MOEPSA)
+                            :epsaunit:         unit for epsa (default: MOEPSAUNIT)
+                            :maxiter:          maximum number of iterations (default: MOMAXITER)
                             :verbose:          if True, print some high level output
                             :progress:         if True, print some basic progress output
                             :debug:            if True, print some debug output
@@ -130,6 +138,14 @@ class MargPOptimizer(CPCArbOptimizer):
         
         # initialisations
         eps = P("eps") or self.MOEPS
+        epsa = P("epsa") or self.MOEPSA
+        epsaunit = P("epsaunit") or self.MOEPSAUNIT
+        crit = P("crit") or self.MOCRITR
+        assert crit in set((self.MOCRITR, self.MOCRITA)), "crit must be self.MOCRITR or self.MOCRITA"
+        if crit == self.MOCRITA:
+            assert not P("pstart") is None, "pstart must be provided if crit is self.MOCRITA"
+            assert epsaunit in P("pstart"), f"epsaunit {epsaunit} not in pstart {P('pstart')}"
+        
         maxiter = P("maxiter") or self.MOMAXITER
         start_time = time.time()
         curves_t = self.curve_container
@@ -287,8 +303,10 @@ class MargPOptimizer(CPCArbOptimizer):
                     targettkn=targettkn,
                     pairs_t=pairs_t,
                     dtknfromp_f=dtknfromp_f,
+                    crit=dict(crit=crit, eps=eps, epsa=epsa, epsaunit=epsaunit, pstart=P("pstart")),
                     optimizer=self,
                 )
+            print("[margp_optimizer] result={result}")
 
             # setting up the optimization variables (note: we optimize in log space)
             if price_estimates_t is None:
