@@ -305,7 +305,7 @@ def raises(func, *args, **kwargs):
 
 # -
 
-# ### min range width functionality
+# ### CPC min range width functionality
 
 cdata = dict(y=100, yint=100, pa=100, pb=100, pair="WETH/USDC", tkny="USDC")
 c  = CPC.from_carbon(**cdata)
@@ -330,6 +330,36 @@ assert iseq(c6.p-100, 0.00004999875, eps=1e-3)
 assert iseq((c2.p-100)/(c4.p-100), 99.75373596136635, eps=1e-4)
 assert iseq((c4.p-100)/(c6.p-100), 99.99752507444194, eps=1e-4)
 
+# ### margpoptimizer absolute convergence
 
+cdata = dict(y=100, yint=100, pa=100, pb=100, pair="WETH/USDC", tkny="USDC")
+c  = CPC.from_carbon(**cdata)
+O = MargPOptimizer(CPCContainer([c,c]))
+r = O.optimize("USDC", params=dict(), result=O.MO_DEBUG)
+assert r["crit"]["crit"] == O.MOCRITR
+assert r["crit"]["eps"] == O.MOEPS
+assert r["crit"]["epsa"] == O.MOEPSA
+assert r["crit"]["epsaunit"] == O.MOEPSAUNIT
+assert r["crit"]["pstart"] is None
+
+assert raises(O.optimize, "USDC", params=dict(crit="meh")) ==\
+  'crit must be self.MOCRITR or self.MOCRITA'
+assert raises(O.optimize, "USDC", params=dict(crit=O.MOCRITA)) == \
+  "pstart must be provided if crit is self.MOCRITA"
+assert raises(O.optimize, "USDC", params=dict(crit=O.MOCRITA, pstart=dict(FOO=1))) ==\
+  "epsaunit USD not in pstart {'FOO': 1}"
+
+r = O.optimize("USDC", params=dict(
+    crit = O.MOCRITA,
+    eps = 1e-10,
+    epsa = 100,
+    epsaunit = "dollah",
+    pstart = dict(dollah=1, WETH=2000, USDC=1)
+), result=O.MO_DEBUG)
+assert r["crit"]["crit"] == O.MOCRITA
+assert r["crit"]["eps"] == 1e-10
+assert r["crit"]["epsa"] == 100
+assert r["crit"]["epsaunit"] == "dollah"
+assert r["crit"]["pstart"] == dict(dollah=1, WETH=2000, USDC=1)
 
 
