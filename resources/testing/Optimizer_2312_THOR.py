@@ -161,6 +161,8 @@ print(CC[2].description())
 
 # ## Optimizer
 
+help(MargPOptimizer.optimize)
+
 # ### Raw run
 #
 # This is the actual run, using USDC as the arbitrage token. This run does not converge; rather the THOR/USDC price oscillates between 0.38ish and 0.29ish. Note that this is way out of the (imputed) price range for the Carbon range which is very tightly centered around `p0~0.36`
@@ -228,7 +230,7 @@ CCr.plot()
 
 O = MargPOptimizer(CCr)
 r = O.optimize("USDC-eB48", params=dict(verbose=False, debug=False))
-#O.optimize("USDC-eB48", params=dict(verbose=True, debug=True))
+O.optimize("USDC-eB48", params=dict(verbose=True, debug=True))
 r
 
 p2 = r.p_optimal["THOR-8044"]
@@ -361,5 +363,7 @@ assert r["crit"]["eps"] == 1e-10
 assert r["crit"]["epsa"] == 100
 assert r["crit"]["epsaunit"] == "dollah"
 assert r["crit"]["pstart"] == dict(dollah=1, WETH=2000, USDC=1)
+
+print(np.inf)
 
 
