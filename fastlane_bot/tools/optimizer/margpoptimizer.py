@@ -14,7 +14,7 @@ Licensed under MIT
 This module is still subject to active research, and comments and suggestions are welcome. 
 The corresponding author is Stefan Loesch <stefan@bancor.network>
 """
-__VERSION__ = "5.3-2"
+__VERSION__ = "5.3-3"
 __DATE__ = "13/Dec/2023"
 
 from dataclasses import dataclass, field, fields, asdict, astuple, InitVar
@@ -118,7 +118,7 @@ class MargPOptimizer(CPCArbOptimizer):
                             :None:             alias for MO_FULL
         :params:        dict of parameters
                             :crit:             criterion MOCRITR (relative, default) or MOCRITA (absolute)
-                            :norm:             norm to use for convergence criterion (MONORML1, MONORML2, MONORMLINF)
+                            :norm:             norm for convergence crit (MONORML1, MONORML2, MONORMLINF)
                             :eps:              relative convergence threshold (default: MOEPS)
                             :epsa:             absolute convergence threshold (default: MOEPSA)
                             :epsaunit:         unit for epsa (default: MOEPSAUNIT)
@@ -129,15 +129,15 @@ class MargPOptimizer(CPCArbOptimizer):
                             :debug2:           more debug output
                             :raiseonerror:     if True, raise an OptimizationError exception on error
                             :pstart:           starting price for optimization, either as dict {tkn:p, ...},
-                                                or as df as price estimate as returned by MO_PSTART;
-                                                excess tokens can be provided but all required tokens must be present
+                                                or as df as price estimate as returned by MO_PSTART; excess
+                                                tokens can be provided, but no tokens must be missing
 
         :returns:       MargpOptimizerResult on the default path, others depending on the
                         chosen result
 
         *this optimizer uses the marginal price method, ie it solves the equation
 
-            dx_i (p) = 0 for all i != targettkn, and the whole price vector
+            dx_i (p) = 0 for all i != targettkn, and the whole price vector p
 
         **at the moment only the trivial self-financing constraint is allowed, ie the one that
         only specifies the target token, and where all other constraints are zero; if sfc is
@@ -180,36 +180,54 @@ class MargPOptimizer(CPCArbOptimizer):
         curves_by_pair = {pair: tuple(c for c in curves_t if c.pair == pair) for pair in pairs }
         pairs_t = tuple(tuple(p.split("/")) for p in pairs)
 
+        # return the inner function if requested
+        # (this may need to move lower)
+        if result == self.MO_DTKNFROMPF:
+            return dtknfromp_f
+
+        # return debug info if requested
+        if result == self.MO_DEBUG:
+            return dict(
+                tokens_t=tokens_t,
+                tokens_ix=tokens_ix,
+                pairs=pairs,
+                sfc=sfc,
+                targettkn=targettkn,
+                pairs_t=pairs_t,
+                crit=dict(crit=P("crit"), eps=eps, epsa=epsa, epsaunit=epsaunit, pstart=P("pstart")),
+                optimizer=self,
+            )
+        
         # pstart
         pstart = P("pstart")
         if not pstart is None:
             if P("verbose") or P("debug"):
-                print(f"[margp_optimizer] using pstartd [{len(P('pstart'))} tokens]")
+                print(f"[margp_optimizer] using pstart [{len(P('pstart'))} tokens]")
             if isinstance(pstart, pd.DataFrame):
                 try:
                     pstart = pstart.to_dict()[targettkn]
                 except Exception as e:
-                    raise Exception(
-                        f"error while converting dataframe pstart to dict: {e}",
-                        pstart,
-                        targettkn,
-                    )
+                    raise Exception(f"error while converting dataframe pstart to dict: {e}", pstart, targettkn)
                 assert isinstance(pstart, dict), f"pstart must be a dict or a data frame [{pstart}]"
             price_estimates_t = tuple(pstart[t] for t in tokens_t)
         else:
             if P("verbose") or P("debug"):
                 print("[margp_optimizer] calculating price estimates")
+            if P("debug"):
+                print(f"[margp_optimizer] tknq={targettkn}, tknbs={tokens_t}")
+            
             try:
                 price_estimates_t = self.price_estimates(
                     tknq=targettkn, 
                     tknbs=tokens_t, 
-                    verbose=False,
+                    verbose=P("debug"),
                     triangulate=True,
                 )
             except Exception as e:
                 if P("verbose") or P("debug"):
-                    print(f"[margp_optimizer] error while calculating price estimates: [{e}]")
+                    print(f"[margp_optimizer] error calculating price estimates: [{e}]")
                 price_estimates_t = None
+                raise
         
         if P("debug"):
             print("[margp_optimizer] pstart:", price_estimates_t)
@@ -224,6 +242,9 @@ class MargPOptimizer(CPCArbOptimizer):
         if crit == self.MOCRITA:
             assert not pstart is None, "pstart must be provided if crit is MOCRITA"
             assert epsaunit in pstart, f"epsaunit {epsaunit} not in pstart {P('pstart')}"
+            p_targettkn_per_epsaunit = pstart[epsaunit]/pstart[targettkn]
+            if P("debug"):
+                print(f"[margp_optimizer] 1 epsaunit [{epsaunit}] = {p_targettkn_per_epsaunit:,.4f} target [{targettkn}]")
         crit_is_relative = crit == self.MOCRITR
         eps_used = eps if crit_is_relative else epsa
         eps_unit = 1 if crit_is_relative else epsaunit
@@ -314,28 +335,6 @@ class MargPOptimizer(CPCArbOptimizer):
 
         try:
     
-            # return the inner function if requested
-            if result == self.MO_DTKNFROMPF:
-                return dtknfromp_f
-
-            # return debug info if requested
-            if result == self.MO_DEBUG:
-                return dict(
-                    # price_estimates_all = price_estimates_all,
-                    # price_estimates_d = price_estimates_d,
-                    price_estimates_t=price_estimates_t,
-                    tokens_t=tokens_t,
-                    tokens_ix=tokens_ix,
-                    pairs=pairs,
-                    sfc=sfc,
-                    targettkn=targettkn,
-                    pairs_t=pairs_t,
-                    dtknfromp_f=dtknfromp_f,
-                    crit=dict(crit=crit, eps=eps, epsa=epsa, epsaunit=epsaunit, pstart=P("pstart")),
-                    optimizer=self,
-                )
-            print(f"[margp_optimizer] result={result}")
-
             # setting up the optimization variables (note: we optimize in log space)
             if price_estimates_t is None:
                 raise Exception(f"price estimates not found; try setting pstart")
@@ -392,19 +391,26 @@ class MargPOptimizer(CPCArbOptimizer):
                 # determine the convergence criterium
                 if crit_is_relative:
                     criterium = normf(dplog10)
-                else:
-                    raise NotImplementedError("absolute convergence not implemented yet")
-                    # the criterium is the norm of the change in log prices
+                    # the relative criterium is the norm of the change in log prices
                     # in other words, it is something like an "average percentage change" of prices
-                    # this is not quite what we want though because if we have highly levered curves,
+                    # this may not quite what we want though because if we have highly levered curves,
                     # then even small percentage changes in prices can be important
-                    # memo item: our REAL criterium is that we want all d_tokens to be zero
-                    # however, because of price differences in crypto we can't compare numbers
-                    # in different token denominations as there is a range of at least 10**10
-                    # between say tokens like BTC and tokens like SHIB.
-                    # In other words: if we want to say |d_tokens| < eps the eps must have a proper
-                    # unit (ideally USD); here |.| is any reasonable norm, eg L1, L2, Linf
-                
+                    # eg for limit orders the whole liquidity is by default distributed
+                    # over a small range that may only be minrw=1e-6 wide
+                    
+                else:
+                    p_in_epsaunit = p / p_targettkn_per_epsaunit 
+                        # p is denominated in targettkn
+                        # p_in_epsaunit in epsaunit
+                    criterium = normf(dtkn*p_in_epsaunit)
+                    if P("debug"):
+                        print(f"[margp_optimizer] tokens_t={tokens_t} [{targettkn}]")
+                        print(f"[margp_optimizer] dtkn={dtkn}")
+                        print(f"[margp_optimizer] p={p} {targettkn}")
+                        print(f"[margp_optimizer] p={p_in_epsaunit} {epsaunit}")
+                    if P("verbose") or P("debug"):
+                        print(f"[margp_optimizer] crit=normf({dtkn*p_in_epsaunit}) = {criterium} {epsaunit}")
+                    
                 # ...print out some info if requested...
                 if P("verbose"):
                     print(f"\n[margp_optimizer] ========== cycle {i} =======>>>")
