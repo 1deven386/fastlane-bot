@@ -30,7 +30,7 @@ plt.style.use('seaborn-v0_8-dark')
 plt.rcParams['figure.figsize'] = [12,6]
 # -
 
-# # Optimizer Testing [202312a-THOR Triangle]
+# # Optimizer Testing [202312a-THOR-8044 Triangle]
 #
 # **IMPORTANT NOTE** 
 #
@@ -104,7 +104,7 @@ len(CC), len(curves_as_dicts)
 
 # ## Analyzis and visualization
 #
-# Note: THOR ~ 30c
+# Note: THOR-8044 ~ 30c
 
 # ### Visualization
 
@@ -147,7 +147,7 @@ p1/p0-1
 # - **THOR/WETH** has 422 ETH and 2.6m THOR at a price of 6205 THOR per ETH
 # - **WETH/USDC** has 23k ETH and 50m USDC at a price of 2373 USDC per ETH
 #
-# The implied **THOR** price is 0.382 USDC (memo: on Carbon it is 0.362, and the THOR loading is 344k, ie ~15% of the THOR available on the arb curve)
+# The implied **THOR** price is 0.382 USDC (memo: on Carbon it is 0.362, and the THOR loading is 344k, ie ~15% of the THOR-8044 available on the arb curve)
 
 p1, p0, p1/p0-1, 344/2600
 
@@ -165,23 +165,23 @@ help(MargPOptimizer.optimize)
 
 # ### Raw run
 #
-# This is the actual run, using USDC as the arbitrage token. This run does not converge; rather the THOR/USDC price oscillates between 0.38ish and 0.29ish. Note that this is way out of the (imputed) price range for the Carbon range which is very tightly centered around `p0~0.36`
+# This is the actual run, using USDC as the arbitrage token. This run does not converge; rather the THOR-8044/USDC-eB48 price oscillates between 0.38ish and 0.29ish. Note that this is way out of the (imputed) price range for the Carbon range which is very tightly centered around `p0~0.36`
 #
 # (uncomment the below code to see the debug run)
 
 O = MargPOptimizer(CC)
 r = O.optimize("USDC-eB48", params=dict(verbose=False, debug=False))
-#O.optimize("USDC-eB48", params=dict(verbose=True, debug=True))
+#O.optimize("USDC", params=dict(verbose=True, debug=True))
 r
 
 # +
-#r = O.optimize("USDC-eB48", params=dict(verbose=True, debug=True))
+#r = O.optimize("USDC", params=dict(verbose=True, debug=True))
 #r
 # -
 
 # ### Better prices estimates
 #
-# We set the initial price for THOR/USD squat into the Carbon range to see whether thise works better. 
+# We set the initial price for THOR/USD squat into the Carbon range to see whether this works better. 
 #
 # TLDR -- it does not. Shame.
 
@@ -194,7 +194,7 @@ price_est
 
 O = MargPOptimizer(CC)
 r = O.optimize("USDC-eB48", params=dict(pstart=price_est, verbose=False, debug=False))
-#O.optimize("USDC-eB48", params=dict(pstart=price_est, verbose=True, debug=True))
+#O.optimize("USDC", params=dict(pstart=price_est, verbose=True, debug=True))
 r
 
 # ### Adding a regularization curve
@@ -240,6 +240,18 @@ p2/p0-1
 
 r.dtokens
 
+# #### Absolute convergence criteria
+
+# +
+#O.optimize("USDC-eB48", result=O.MO_PSTART)
+# -
+
+pstart = {'WETH-6Cc2': 2373.231732603511, 'THOR-8044': 0.36299996370000637, 'USDC-eB48': 1, "USD": 1}
+params = dict(crit=O.MOCRITA, norm=O.MONORMLINF, epsa=10, epsaunit="USD", pstart=pstart)
+r = O.optimize("USDC-eB48", params=dict(verbose=False, debug=False))
+#O.optimize("USDC-eB48", params=dict(verbose=True, debug=True, **params))
+r
+
 # ### Removing the Carbon curve
 #
 # Here we check how it converges if we remove the Carbon curve and replace it with a constant product curve of the same (virtual) capacity. Unsurprisingly it does and all dtokens are zero.
@@ -254,10 +266,23 @@ CCb.plot()
 
 O = MargPOptimizer(CCb)
 r = O.optimize("USDC-eB48", params=dict(verbose=False, debug=False))
-#O.optimize("USDC-eB48", params=dict(verbose=True, debug=True))
+#O.optimize("USDC", params=dict(verbose=True, debug=True))
 r
 
 r.dtokens
+
+
+# #### Absolute convergence criteria
+
+# +
+#O.optimize("USDC-eB48", result=O.MO_PSTART)
+# -
+
+pstart = {'WETH-6Cc2': 2373.231732603511, 'THOR-8044': 0.36299996370000637, 'USDC-eB48': 1, "USD": 1}
+params = dict(crit=O.MOCRITA, norm=O.MONORMLINF, epsa=10, epsaunit="USD", pstart=pstart)
+r = O.optimize("USDC-eB48", params=dict(verbose=False, debug=False))
+#O.optimize("USDC-eB48", params=dict(verbose=True, debug=True, **params))
+r
 
 
 # ## Unit tests
@@ -309,7 +334,7 @@ def raises(func, *args, **kwargs):
 
 # ### CPC min range width functionality
 
-cdata = dict(y=100, yint=100, pa=100, pb=100, pair="WETH/USDC", tkny="USDC")
+cdata = dict(y=100, yint=100, pa=100, pb=100, pair="WETH-6Cc2/USDC-eB48", tkny="USDC-eB48")
 c  = CPC.from_carbon(**cdata)
 c2 = CPC.from_carbon(**cdata, minrw=1e-2)
 c4 = CPC.from_carbon(**cdata, minrw=1e-4)
@@ -334,24 +359,28 @@ assert iseq((c4.p-100)/(c6.p-100), 99.99752507444194, eps=1e-4)
 
 # ### margpoptimizer absolute convergence
 
-cdata = dict(y=100, yint=100, pa=100, pb=100, pair="WETH/USDC", tkny="USDC")
+cdata = dict(y=100, yint=100, pa=100, pb=100, pair="WETH-6Cc2/USDC-eB48", tkny="USDC-eB48")
 c  = CPC.from_carbon(**cdata)
 O = MargPOptimizer(CPCContainer([c,c]))
-r = O.optimize("USDC", params=dict(), result=O.MO_DEBUG)
-assert r["crit"]["crit"] == O.MOCRITR
+r = O.optimize("USDC-eB48", params=dict(verbose=True, debug=True), result=O.MO_DEBUG)
+assert r["crit"]["crit"] is None
 assert r["crit"]["eps"] == O.MOEPS
 assert r["crit"]["epsa"] == O.MOEPSA
 assert r["crit"]["epsaunit"] == O.MOEPSAUNIT
 assert r["crit"]["pstart"] is None
 
-assert raises(O.optimize, "USDC", params=dict(crit="meh")) ==\
-  'crit must be self.MOCRITR or self.MOCRITA'
-assert raises(O.optimize, "USDC", params=dict(crit=O.MOCRITA)) == \
-  "pstart must be provided if crit is self.MOCRITA"
-assert raises(O.optimize, "USDC", params=dict(crit=O.MOCRITA, pstart=dict(FOO=1))) ==\
+assert raises(O.optimize, "USDC-eB48", params=dict(crit="meh")) ==\
+  'crit must be MOCRITR or MOCRITA'
+assert raises(O.optimize, "USDC-eB48", params=dict(crit=O.MOCRITA)) == \
+  "pstart must be provided if crit is MOCRITA"
+assert raises(O.optimize, "USDC-eB48", params=dict(crit=O.MOCRITA, pstart=dict(FOO=1))) ==\
   "epsaunit USD not in pstart {'FOO': 1}"
 
-r = O.optimize("USDC", params=dict(
+raises(O.optimize, "USDC-eB48", params=dict(crit=O.MOCRITA, pstart=dict(FOO=1)))
+
+O.optimize("USDC-eB48", params=dict(crit=O.MOCRITA, pstart=dict(FOO=1)))
+
+r = O.optimize("USDC-eB48", params=dict(
     crit = O.MOCRITA,
     eps = 1e-10,
     epsa = 100,
