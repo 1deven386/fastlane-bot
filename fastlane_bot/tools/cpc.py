@@ -7,8 +7,8 @@ Licensed under MIT
 NOTE: this class is not part of the API of the Carbon protocol, and you must expect breaking
 changes even in minor version updates. Use at your own risk.
 """
-__VERSION__ = "3.4"
-__DATE__ = "12/Dec/2023"
+__VERSION__ = "3.4-1"
+__DATE__ = "13/Dec/2023"
 
 from dataclasses import dataclass, field, asdict, InitVar
 from .simplepair import SimplePair as Pair
@@ -2357,7 +2357,7 @@ class CPCContainer:
     PE_DATA = "data"
 
     def price_estimate(
-        self, *, tknq=None, tknb=None, pair=None, result=None, raiseonerror=True
+        self, *, tknq=None, tknb=None, pair=None, result=None, raiseonerror=True, verbose=False
     ):
         """
         calculates price estimate in the reference token as base token
@@ -2370,6 +2370,7 @@ class CPCContainer:
                         :PE_PAIR:      slashpair
                         :PE_CURVES:    curves
                         :PE_DATA:      prices, weights
+        :verbose:       whether to print some progress
         :returns:       price (quote per base)
         """
         assert tknq is not None and tknb is not None or pair is not None, (
@@ -2396,6 +2397,8 @@ class CPCContainer:
             # return dict(curves=tuple(crvs), rcurves=tuple(rcrvs))
             return tuple(acurves)
         data = tuple((r[1], sqrt(r[2])) for r in acurves)
+        if verbose:
+            print(f"[price_estimate] {tknq}/{tknb} {len(data)} curves")
         if not len(data) > 0:
             if raiseonerror:
                 raise ValueError(f"no curves found for {tknq}/{tknb}")
@@ -2446,13 +2449,13 @@ class CPCContainer:
             tknqs = [t.strip() for t in tknqs.split(",")]
         if isinstance(tknbs, str):
             tknbs = [t.strip() for t in tknbs.split(",")]
-        # print(f"[price_estimates] tknqs [{len(tknqs)}], tknbs [{len(tknbs)}]")
-        # print(f"[price_estimates] tknqs [{len(tknqs)}] = {tknqs} , tknbs [{len(tknbs)}]] = {tknbs} ")
+        if verbose:
+            print(f"[price_estimates] tknqs [{len(tknqs)}] = {tknqs} , tknbs [{len(tknbs)}] = {tknbs} ")
         resulttp = self.PE_PAIR if pairs else None
         result = np.array(
             [
                 [
-                    self.price_estimate(tknb=b, tknq=q, raiseonerror=False, result=resulttp)
+                    self.price_estimate(tknb=b, tknq=q, raiseonerror=False, result=resulttp, verbose=verbose)
                     for b in tknbs
                 ] 
                 for q in tknqs
@@ -2522,12 +2525,7 @@ class CPCContainer:
             }
             # print("[price_estimates] result", result)
             if not len(missing) == 0:
-                raise ValueError(
-                    f"no price found for {len(missing)} pairs",
-                    result,
-                    missing,
-                    len(missing),
-                )
+                raise ValueError(f"no price found for {len(missing)} pairs", missing, result)
 
         #print(f"[price_estimates] DONE [{time.time()-start_time:.2f}s]")
         if unwrapsingle and len(tknqs) == 1:
