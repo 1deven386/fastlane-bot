@@ -14,7 +14,7 @@ Licensed under MIT
 This module is still subject to active research, and comments and suggestions are welcome. 
 The corresponding author is Stefan Loesch <stefan@bancor.network>
 """
-__VERSION__ = "5.3-1"
+__VERSION__ = "5.3-2"
 __DATE__ = "13/Dec/2023"
 
 from dataclasses import dataclass, field, fields, asdict, astuple, InitVar
