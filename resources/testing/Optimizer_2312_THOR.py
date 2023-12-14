@@ -183,7 +183,7 @@ r
 #
 # We set the initial price for THOR/USD squat into the Carbon range to see whether this works better. 
 #
-# TLDR -- it does not. Shame.
+# TLDR -- it does not.
 
 price_est = {
     "USDC-eB48": 1,
@@ -197,48 +197,38 @@ r = O.optimize("USDC-eB48", params=dict(pstart=price_est, verbose=False, debug=F
 #O.optimize("USDC", params=dict(pstart=price_est, verbose=True, debug=True))
 r
 
-# ### Adding a regularization curve
+# #### Tighter Jacobian
 #
-# The issue with the convergence is that the Carbon range is very thin, and the gradients from the other curves just jump across it. Unfortunately this happens both ways so we always jump from one side of the curve to the other, without ever converging.
+# Currently the jacobian h is set to 1e-5 and `minrw` in the data provided is set to 1e-7 meaning that the Jacobian calculation goes outside the concentrated liquidity area and is therefore much too steep.
 #
-# One way to solve this is to add a Uni v2 style curve with the same characteristics (price, mostly) as the Carbon curve. This curve should guide the algo more smoothly back into the Carbon range (provided the v2 curve is big enough to affect the gradient, and not too big to distort the result).
-#
-# Note the following convergence properties with respect to the `SCALING` parameter (note: both x and y of the initial curve are divided by this factor)
-#
-# - `SCALING = 60` converges
-# - `SCALING = 65` does not converge
-#
-# **HOWEVER CONVERGENCE DOES NOT LEAD TO THE CORRECT POINT; D_TOKEN [THOR] IS STILL NOT ZERO**
+# We'll try 1e-8 as `jach` here. Turns out this works and it even converges. 
 
-SCALING = 50
+CC[0].p_max/CC[0].p_min-1
 
-c0d = curves_as_dicts[0]
-c0d
-
-c0 = CC[0]
-c0
-
-c0r = CPC.from_xy(x=c0.x/SCALING, y=c0.y/SCALING, pair=c0.pair)
-c0r
-
-1/c0.p, 1/c0r.p
-
-CCr = CPCContainer.from_dicts(curves_as_dicts)
-CCr += c0r
-
-CCr.plot()
-
-O = MargPOptimizer(CCr)
-r = O.optimize("USDC-eB48", params=dict(verbose=False, debug=False))
-O.optimize("USDC-eB48", params=dict(verbose=True, debug=True))
+O = MargPOptimizer(CC)
+r = O.optimize("USDC-eB48", params=dict(pstart=price_est, verbose=False, debug=False, jach=1e-8))
+#O.optimize("USDC", params=dict(pstart=price_est, verbose=True, debug=True))
 r
 
-p2 = r.p_optimal["THOR-8044"]
-p2
+# +
+# CCr.plot()
 
-p2/p0-1
+# +
+# O = MargPOptimizer(CCr)
+# r = O.optimize("USDC-eB48", params=dict(verbose=False, debug=False))
+# O.optimize("USDC-eB48", params=dict(verbose=True, debug=True))
+# r
 
-r.dtokens
+# +
+# p2 = r.p_optimal["THOR-8044"]
+# p2
+
+# +
+# p2/p0-1
+
+# +
+# r.dtokens
+# -
 
 # #### Absolute convergence criteria
 
