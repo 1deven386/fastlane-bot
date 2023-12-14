@@ -14,8 +14,8 @@ Licensed under MIT
 This module is still subject to active research, and comments and suggestions are welcome. 
 The corresponding author is Stefan Loesch <stefan@bancor.network>
 """
-__VERSION__ = "5.3-3"
-__DATE__ = "13/Dec/2023"
+__VERSION__ = "5.3-4"
+__DATE__ = "14/Dec/2023"
 
 from dataclasses import dataclass, field, fields, asdict, astuple, InitVar
 import pandas as pd
@@ -44,26 +44,26 @@ class MargPOptimizer(CPCArbOptimizer):
         return "margp"
     
     @classmethod
-    def jacobian(cls, func, x, *, eps=None):
+    def jacobian(cls, func, x, *, jach=None):
         """
         computes the Jacobian of func at point x
 
         :func:    a callable x=(x1..xn) -> (y1..ym), taking and returning np.arrays
                   must also take a quiet parameter, which if True suppresses output
         :x:       a vector x=(x1..xn) as np.array
+        :jach:    the h value for the derivative calculation (default: cls.JACH)
         """
-        if eps is None:
-            eps = cls.JACEPS
+        h = cls.MOJACH if jach is None else jach
         n = len(x)
         y = func(x, quiet=True)
         jac = np.zeros((n, n))
         for j in range(n):  # through columns to allow for vector addition
-            Dxj = abs(x[j]) * eps if x[j] != 0 else eps
+            Dxj = abs(x[j]) * h if x[j] != 0 else h
             x_plus = [(xi if k != j else xi + Dxj) for k, xi in enumerate(x)]
             jac[:, j] = (func(x_plus, quiet=True) - y) / Dxj
         return jac
     J = jacobian
-    JACEPS = 1e-5
+    MOJACH = 1e-5
 
     
     MO_DEBUG = "debug"
@@ -122,6 +122,7 @@ class MargPOptimizer(CPCArbOptimizer):
                             :eps:              relative convergence threshold (default: MOEPS)
                             :epsa:             absolute convergence threshold (default: MOEPSA)
                             :epsaunit:         unit for epsa (default: MOEPSAUNIT)
+                            :jach:             step size for calculating Jacobian (default: MOJACH)
                             :maxiter:          maximum number of iterations (default: MOMAXITER)
                             :verbose:          if True, print some high level output
                             :progress:         if True, print some basic progress output
@@ -161,6 +162,7 @@ class MargPOptimizer(CPCArbOptimizer):
         eps = P("eps") or self.MOEPS
         epsa = P("epsa") or self.MOEPSA
         epsaunit = P("epsaunit") or self.MOEPSAUNIT
+        jach = P("jach") or self.MOJACH
         maxiter = P("maxiter") or self.MOMAXITER
         
         # curves, tokens and pairs
@@ -340,7 +342,7 @@ class MargPOptimizer(CPCArbOptimizer):
                 raise Exception(f"price estimates not found; try setting pstart")
             p = np.array(price_estimates_t, dtype=float)
             plog10 = np.log10(p)
-            if P("verbose"):
+            if P("verbose") or P("debug"):
                 # dtkn_d, dtkn = dtknfromp_f(plog10, islog10=True, asdct=True)
                 print("[margp_optimizer] pe  ", p)
                 print("[margp_optimizer] p   ", ", ".join(f"{x:,.2f}" for x in p))
@@ -364,7 +366,7 @@ class MargPOptimizer(CPCArbOptimizer):
                 # calculate the Jacobian
                 # if P("debug"):
                 #     print("\n[margp_optimizer] ============= JACOBIAN =============>>>")
-                J = self.J(dtknfromp_f, plog10)  
+                J = self.J(dtknfromp_f, plog10, jach=jach)  
                     # ATTENTION: dtknfromp_f takes log10(p) as input
                 if P("debug"):
                     # print("==== J ====>")
