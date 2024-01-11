@@ -1,11 +1,9 @@
 """
 encapsulating optimization methods, including convex and marginal price optimization
 
-(c) Copyright Bprotocol foundation 2023. 
-Licensed under MIT
 
 ================================================================================================
-                 Convex and Marginal Price Optimization for Arbitrage and Routing
+                Convex and Marginal Price Optimization for Arbitrage and Routing
 ================================================================================================
 
 This module implements a number of methods that allow for routing* and arbitrage amongst a set
@@ -15,11 +13,15 @@ particular the convex optimization methods with the solvers available to us to d
 be able to handle leveraged liquidity well.
 
 This module is still subject to active research, and comments and suggestions are welcome. 
-The corresponding author is Stefan Loesch <stefan@bancor.network>
-
 
 *routing is not implemented yet, but it is a trivial extension of the arbitrage methods that
 only needs to be connected and properly parameterized
+
+Corresponding Author: Stefan Loesch <stefan@bancor.network>
+Canonic Location: https://github.com/bancorprotocol/fastlane-bot
+
+(c) Copyright Bprotocol foundation 2023. 
+Licensed under MIT
 """
 
 from .cpcarboptimizer import *
