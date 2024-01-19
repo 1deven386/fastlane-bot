@@ -38,7 +38,7 @@ print("{0.__name__} v{0.__VERSION__} ({0.__DATE__})".format(f.Function))
 print("{0.__name__} v{0.__VERSION__} ({0.__DATE__})".format(BancorInvariant))
 # -
 
-# # Invariants Module
+# # Invariants (Invariants Module; NBTest067)
 
 # ## General invariants
 
