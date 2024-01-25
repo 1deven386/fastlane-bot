@@ -4,8 +4,8 @@ dict-based vectors
 (c) Copyright Bprotocol foundation 2024. 
 Licensed under MIT
 """
-__VERSION__ = '0.9'
-__DATE__ = "18/Jan/2024"
+__VERSION__ = '0.9.1'
+__DATE__ = "25/Jan/2024"
 
 from dataclasses import dataclass, asdict
 import math
@@ -65,6 +65,22 @@ class DictVector():
         other may not be compatible, in which case _kwargs should throw an exception.
         """
         return dict()   
+    
+    @property
+    def elements(self):
+        """returns the elements (keys!) of the vector as a list"""
+        return list(self.vec.keys())
+    el = elements
+    
+    @property
+    def coeffs(self):
+        """returns the coefficients of the vector as a list"""
+        return list(self.vec.values())
+    
+    @property
+    def items(self):
+        """returns the items of the vector as a list of tuples (element, coeff)"""
+        return list(self.vec.items())
     
     def __getitem__(self, key):
         return self.vec.get(key, 0)
