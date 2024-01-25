@@ -131,6 +131,7 @@ plt.ylim(0, max(x_v))
 plt.title("Invariance curves for different values of $\sqrt[4]{k}$")
 plt.xlabel("x")
 plt.ylabel("y")
+plt.savefig("/Users/skl/Desktop/image.jpg")
 plt.show()
 # -
 
@@ -257,6 +258,8 @@ plt.show()
 
 
 # ## Fitting a hyperbolic curve
+#
+# _this code seems to have some issues and we may revisit it later_
 
 k = 5**4
 
@@ -265,41 +268,42 @@ k = 5**4
 # The central region is between the rays $m=2.6$ and $1/m=2.6$ (fan-shaped area in the real plot, and diagonal band in the log/log plot). We are fixing $k=5^4$ as a curve in the middle of our existing chart. The inner region in this case is determined by the equations $\frac x y = m$ and $f(x,y)=k$
 
 # +
-x_mid = (k/2)**0.25
-# set up the invariant and the swap function
-iv = SolidlyInvariant()
-y_f = SolidlySwapFunction(k=k)
-ratio_f = lambda x: y_f(x)/x
+# x_mid = (k/2)**0.25
+# # set up the invariant and the swap function
+# iv = SolidlyInvariant()
+# y_f = SolidlySwapFunction(k=k)
+# ratio_f = lambda x: y_f(x)/x
 
-# various consistency checks
-print("x,y mid = (k/2)^0.25 = ", x_mid)
-assert iseq(y_f(x_mid), x_mid)  # at x_mid, y_mid = y(x_mid)
-assert iseq(ratio_f(x_mid), 1)  # ditto, but with ratio_f
-assert iseq(f.goalseek(func=ratio_f, target = 1), x_mid) # ditto, but goalseek
-for xx in np.linspace(0.1, 10):
-    assert iseq(iv.k_func(xx, y_f(xx)), k)
+# # various consistency checks
+# print("x,y mid = (k/2)^0.25 = ", x_mid)
+# assert iseq(y_f(x_mid), x_mid)  # at x_mid, y_mid = y(x_mid)
+# assert iseq(ratio_f(x_mid), 1)  # ditto, but with ratio_f
+# assert iseq(f.goalseek(func=ratio_f, target = 1), x_mid) # ditto, but goalseek
+# for xx in np.linspace(0.1, 10):
+#     assert iseq(iv.k_func(xx, y_f(xx)), k)
 
-y_f.plot(0.1,10, show=False)
-plt.grid(True)
-plt.xlim(0, 10)
-plt.ylim(0, 10)
-plt.title(f"Invariance curve for $k={k**0.25:.0f}^4$")
-plt.xlabel("x")
-plt.ylabel("y")
-plt.show()
+# y_f.plot(0.1,10, show=False)
+# plt.grid(True)
+# plt.xlim(0, 10)
+# plt.ylim(0, 10)
+# plt.title(f"Invariance curve for $k={k**0.25:.0f}^4$")
+# plt.xlabel("x")
+# plt.ylabel("y")
+# plt.show()
+
+# +
+# x_v = np.linspace(0.1,10)
+# #plt.plot(x_v, [m.log10(ratio_f(xx)) for xx in x_v])
+# plt.plot(x_v, [(ratio_f(xx)) for xx in x_v])
+# plt.grid(True)
+# plt.xlim(0, 10)
+# plt.ylim(0, 5)
+# plt.title(f"Ratio y/x for $k={k**0.25:.0f}^4$")
+# plt.xlabel("x")
+# plt.ylabel("y(x)/x")
+# print(f"check that ratio = 1 for x = x_mid = {x_mid}")
+# plt.show()
 # -
-
-x_v = np.linspace(0.1,10)
-#plt.plot(x_v, [m.log10(ratio_f(xx)) for xx in x_v])
-plt.plot(x_v, [(ratio_f(xx)) for xx in x_v])
-plt.grid(True)
-plt.xlim(0, 10)
-plt.ylim(0, 5)
-plt.title(f"Ratio y/x for $k={k**0.25:.0f}^4$")
-plt.xlabel("x")
-plt.ylabel("y(x)/x")
-print(f"check that ratio = 1 for x = x_mid = {x_mid}")
-plt.show()
 
 # Here we finally determine the **central region**, defined by $m^{\pm 1} = 2.6$. We find that, for our chosen value of $k$, the region is from 2.35 to 6.13 and centers at 4.2.
 #
@@ -307,79 +311,160 @@ plt.show()
 #
 #     0.56 x_mid (43.9% below) ... 1.46 x_mid (46.0% above)
 
-assert iseq(f.goalseek(func=ratio_f, target = 1), x_mid)
-r = (
+# +
+# assert iseq(f.goalseek(func=ratio_f, target = 1), x_mid)
+# r = (
+#     f.goalseek(func=ratio_f, target = 2.6),
+#     f.goalseek(func=ratio_f, target = 1),
+#     f.goalseek(func=ratio_f, target = 1/2.6)
+# )
+# r, tuple(round(vv/r[1]*100-100,1) for vv in r), tuple(round(vv/r[1]*100,1) for vv in r)
+# -
+
+# Here we are asserting invariance with respect to $k$
+
+# +
+# k_v = [kk**4 for kk in [5, 25, 100, 1000]]
+# for kk in k_v:
+#     x_mid = (kk/2)**0.25
+#     y_f = SolidlySwapFunction(k=kk)
+#     ratio_f = lambda x: y_f(x)/x
+#     r0 = (
+#         f.goalseek(func=ratio_f, target = 2.6),
+#         f.goalseek(func=ratio_f, target = 1),
+#         f.goalseek(func=ratio_f, target = 1/2.6)
+#     )
+#     r = tuple(round(vv/r0[1],4) for vv in r0)
+#     print(r)
+# x_min_r, _, x_max_r = r
+# -
+
+# ### Fitting with flat kernel
+
+# +
+# x_mid = (k/2)**0.25
+# x_min, x_max = x_min_r*x_mid, x_max_r*x_mid
+# # x_min, x_max = 0.2*x_min, 3*x_max # uncomment to see bigger plot
+# k**0.25, x_min, x_mid, x_max 
+
+# +
+# iv = SolidlyInvariant()
+# y_f = SolidlySwapFunction(k=k)
+# fv = f.FunctionVector(kernel=f.Kernel(x_min=x_min, x_max=x_max, kernel=f.Kernel.FLAT))
+# y_fv = fv.wrap(y_f)
+# y_fv.plot(steps=100, show=False)
+# match0_fv = y_fv.wrap(f.HyperbolaFunction(k=15, x0=0, y0=0))
+# match0_fv.plot(steps=100, show=False)
+# plt.title(f"Invariance function $k={k**0.25:.0f}^4$ (fitted area only)")
+# plt.xlabel("x")
+# plt.ylabel("y")
+# plt.show()
+
+# +
+# match0_fv = match0_fv.update(k=25)
+# params0 = match0_fv.function().params()
+# #del params0["k"]
+# params = y_fv.curve_fit(match0_fv.function(), params0, learning_rate=1, iterations=1000, tolerance=0.01, verbose=True)
+
+# +
+# match_f = match0_fv.function().update(**params)
+# match_fv = y_fv.wrap(match_f)
+# y_fv.plot(steps=100, show=False)
+# match_fv.plot(steps=100, show=False)
+# plt.title(f"Invariance function $k={k**0.25:.0f}^4$ (fitted area only)")
+# plt.xlabel("x")
+# plt.ylabel("y")
+# print("params = ", params)
+# print(match_fv.params())
+# plt.show()
+
+# +
+# iv = SolidlyInvariant()
+# y_f = SolidlySwapFunction(k=k)
+# fv = f.FunctionVector(kernel=f.Kernel(x_min=x_min, x_max=x_max, kernel=f.Kernel.FLAT))
+# y_fv = fv.wrap(y_f)
+# y_fv.plot(steps=100, show=False)
+# match0_fv = y_fv.wrap(f.QuadraticFunction())
+# match0_fv.plot(steps=100, show=False)
+# plt.title(f"Invariance function $k={k**0.25:.0f}^4$ (fitted area only)")
+# plt.xlabel("x")
+# plt.ylabel("y")
+# plt.show()
+
+# +
+# params0 = match0_fv.function().params()
+# params = y_fv.curve_fit(match0_fv.function(), params0, learning_rate=0.1, iterations=100, tolerance=0.01, verbose=True)
+# -
+
+# ## Fitting a hyperbolic curve (charts for paper)
+
+
+# +
+k = 6**4
+x_mid = (k/2)**0.25
+y_f = SolidlySwapFunction(k=k)
+
+x_mid = (k/2)**0.25
+ratio_f = lambda x: y_f(x)/x
+r0 = (
     f.goalseek(func=ratio_f, target = 2.6),
     f.goalseek(func=ratio_f, target = 1),
     f.goalseek(func=ratio_f, target = 1/2.6)
 )
-r, tuple(round(vv/r[1]*100-100,1) for vv in r), tuple(round(vv/r[1]*100,1) for vv in r)
-
-# Here we are asserting invariance with respect to $k$
-
-k_v = [kk**4 for kk in [5, 25, 100, 1000]]
-for kk in k_v:
-    x_mid = (kk/2)**0.25
-    y_f = SolidlySwapFunction(k=kk)
-    ratio_f = lambda x: y_f(x)/x
-    r0 = (
-        f.goalseek(func=ratio_f, target = 2.6),
-        f.goalseek(func=ratio_f, target = 1),
-        f.goalseek(func=ratio_f, target = 1/2.6)
-    )
-    r = tuple(round(vv/r0[1],4) for vv in r0)
-    print(r)
+r = tuple(round(vv/r0[1],4) for vv in r0)
+print(r)
 x_min_r, _, x_max_r = r
 
-# ### Fitting with flat kernel
-
-x_mid = (k/2)**0.25
 x_min, x_max = x_min_r*x_mid, x_max_r*x_mid
-# x_min, x_max = 0.2*x_min, 3*x_max # uncomment to see bigger plot
 k**0.25, x_min, x_mid, x_max 
 
+# +
+x_mid = (k/2)**0.25
+# set up the invariant and the swap function
 iv = SolidlyInvariant()
 y_f = SolidlySwapFunction(k=k)
-fv = f.FunctionVector(kernel=f.Kernel(x_min=x_min, x_max=x_max, kernel=f.Kernel.FLAT))
-y_fv = fv.wrap(y_f)
-y_fv.plot(steps=100, show=False)
-match0_fv = y_fv.wrap(f.HyperbolaFunction(k=15, x0=0, y0=0))
-match0_fv.plot(steps=100, show=False)
-plt.title(f"Invariance function $k={k**0.25:.0f}^4$ (fitted area only)")
+ratio_f = lambda x: y_f(x)/x
+x_v = np.linspace(0,10,1000)
+x_v[0] = x_v[1]/2
+
+
+# solidly
+yy_solidly_v = [y_f(xx) for xx in x_v]
+
+# constant product
+ps=0.06
+fv_template = f.FunctionVector(kernel=f.Kernel(x_min=x_min, x_max=x_max, kernel=f.Kernel.FLAT))
+match_fv = fv_template.wrap(f.LCPMM.from_xpxp(xa=x_min, xb=x_max, pa=1+ps, pb=1-ps, y0=448))
+yy_match_v = [match_fv(xx) for xx in x_v]
+
+# rays
+mm = 2.6
+yy_ray1_v = [mm*xx for xx in x_v]
+yy_ray2_v = [1/mm*xx for xx in x_v]
+
+# tangent
+C = 0.5**(0.25)
+kk = k**0.25
+yy_tang_v = [C*kk - (xx-C*kk) for xx in x_v]
+
+# plot
+plt.plot(x_v, yy_solidly_v, label=f"Solidly (k={k})")
+plt.plot(x_v, yy_match_v, label=f"Match")
+plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
+plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
+plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
+
+plt.grid(True)
+plt.title(f"Matching a Solidly curve")
 plt.xlabel("x")
 plt.ylabel("y")
+plt.legend()
+
+# plt.xlim(0, 10)
+# plt.ylim(0, 10)
 plt.show()
-
-match0_fv = match0_fv.update(k=25)
-params0 = match0_fv.function().params()
-#del params0["k"]
-params = y_fv.curve_fit(match0_fv.function(), params0, learning_rate=1, iterations=1000, tolerance=0.01, verbose=True)
-
-match_f = match0_fv.function().update(**params)
-match_fv = y_fv.wrap(match_f)
-y_fv.plot(steps=100, show=False)
-match_fv.plot(steps=100, show=False)
-plt.title(f"Invariance function $k={k**0.25:.0f}^4$ (fitted area only)")
-plt.xlabel("x")
-plt.ylabel("y")
-print("params = ", params)
-print(match_fv.params())
+plt.plot(x_v, yy_match_v, label=f"Match")
 plt.show()
-
-iv = SolidlyInvariant()
-y_f = SolidlySwapFunction(k=k)
-fv = f.FunctionVector(kernel=f.Kernel(x_min=x_min, x_max=x_max, kernel=f.Kernel.FLAT))
-y_fv = fv.wrap(y_f)
-y_fv.plot(steps=100, show=False)
-match0_fv = y_fv.wrap(f.QuadraticFunction())
-match0_fv.plot(steps=100, show=False)
-plt.title(f"Invariance function $k={k**0.25:.0f}^4$ (fitted area only)")
-plt.xlabel("x")
-plt.ylabel("y")
-plt.show()
-
-params0 = match0_fv.function().params()
-params = y_fv.curve_fit(match0_fv.function(), params0, learning_rate=0.1, iterations=100, tolerance=0.01, verbose=True)
-
+# -
 
 
