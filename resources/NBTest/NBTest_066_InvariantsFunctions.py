@@ -19,6 +19,7 @@ try:
     from tools.invariants.kernel import Kernel
     from testing import *
 except:
+    raise
     import fastlane_bot.tools.invariants.functions as f
     from fastlane_bot.tools.invariants.kernel import Kernel
     from fastlane_bot.testing import *
@@ -605,6 +606,126 @@ f1v.plot(show=False, label=f"f1 [match 1]: dist={diff1:.2f}")
 f2v.plot(show=False, label=f"f2 [match 2]: dist={diff2:.2f}")
 plt.legend()
 plt.show()
+# -
+
+# ### norm and curve distance on price functions
+#
+# Note: what we call a _price function_ is simply the negative first derivative, assuming the functions are swap function
+
+# +
+fv_t = f.FunctionVector(kernel=Kernel(x_min=0, x_max=1, kernel=Kernel.FLAT))
+fn1_fv = fv_t.wrap(f.QuadraticFunction(c=1))  # f(x) = 1
+fn2_fv = fv_t.wrap(f.QuadraticFunction(c=1, b=-1)) # f(x) = 1-x
+null_f = lambda x: 0
+half_f = lambda x: 0.5
+one_f = lambda x: 1
+fn1_fv.plot(label="fn1(x)=1", linewidth=3)
+fn2_fv.plot(label="fn2(x)=1-x")
+fn1_fv.plot(func=fn1_fv.p, label="fn1.p(x)=0")
+fn2_fv.plot(func=fn2_fv.p, linestyle="--", color="#faa", label="fn2.p(x)=1")
+
+plt.legend()
+plt.show()
+# -
+
+# #### norm
+
+# +
+# method-level equality
+# ... on self.f
+assert fn1_fv.norm2_L2 == fn1_fv.norm2 
+assert fn1_fv.norm_L2 == fn1_fv.norm
+assert fn1_fv.norm_L1 == fn1_fv.norm1 
+# ... on self.p
+assert fn1_fv.normp2_L2 == fn1_fv.normp2 
+assert fn1_fv.normp_L2 == fn1_fv.normp
+assert fn1_fv.normp_L1 == fn1_fv.normp1 
+
+# checking values fn1
+# ... on self.f
+assert fn1_fv.norm2_L2() == 1
+assert fn1_fv.norm_L2() == 1
+assert fn1_fv.norm_L1() == 1
+# ... on self.p
+assert fn1_fv.normp2_L2() == 0
+assert fn1_fv.normp_L2() == 0
+assert fn1_fv.normp_L1() == 0
+
+# # checking values fn2
+# # ... on self.f
+assert iseq(1/3, fn2_fv.norm2_L2(), eps=1e-4)
+assert iseq(m.sqrt(1/3), fn2_fv.norm_L2(), eps=1e-4)
+assert iseq(1/2, fn2_fv.norm_L1(), eps=1e-4)
+# # ... on self.p
+assert iseq(1, fn2_fv.normp2_L2(), eps=1e-4)
+assert iseq(1, fn2_fv.normp_L2(), eps=1e-4)
+assert iseq(1, fn2_fv.normp_L1(), eps=1e-4)
+# -
+
+# #### distance
+
+# +
+# checking values fn1 vs null_f [1-0]
+# ... on self.f
+assert fn1_fv.dist2_L2(func=null_f) == 1
+assert fn1_fv.dist_L2(func=null_f) == 1
+assert fn1_fv.dist_L1(func=null_f) == 1
+# ... on self.p
+assert fn1_fv.distp2_L2(func=null_f) == 0
+assert fn1_fv.distp_L2(func=null_f) == 0
+assert fn1_fv.distp_L1(func=null_f) == 0
+
+# # checking values fn2 vs null_f [1-x-0]
+# # ... on self.f
+assert iseq(1/3, fn2_fv.dist2_L2(func=null_f), eps=1e-4)
+assert iseq(m.sqrt(1/3), fn2_fv.dist_L2(func=null_f), eps=1e-4)
+assert iseq(1/2, fn2_fv.dist_L1(func=null_f), eps=1e-4)
+# # ... on self.p
+assert iseq(1, fn2_fv.distp2_L2(func=null_f), eps=1e-4)
+assert iseq(1, fn2_fv.distp_L2(func=null_f), eps=1e-4)
+assert iseq(1, fn2_fv.distp_L1(func=null_f), eps=1e-4)
+
+# +
+# checking values fn1 vs one_f [1-1]
+# ... on self.f
+assert fn1_fv.dist2_L2(func=one_f) == 0
+assert fn1_fv.dist_L2(func=one_f) == 0
+assert fn1_fv.dist_L1(func=one_f) == 0
+# ... on self.p
+assert fn1_fv.distp2_L2(func=one_f) == 1
+assert fn1_fv.distp_L2(func=one_f) == 1
+assert fn1_fv.distp_L1(func=one_f) == 1
+
+# # checking values fn2 vs one_f [1-x-1]
+# # ... on self.f
+assert iseq(1/3, fn2_fv.dist2_L2(func=one_f), eps=1e-4)
+assert iseq(m.sqrt(1/3), fn2_fv.dist_L2(func=one_f), eps=1e-4)
+assert iseq(1/2, fn2_fv.dist_L1(func=one_f), eps=1e-4)
+# # ... on self.p
+assert iseq(0, fn2_fv.distp2_L2(func=one_f), eps=1e-4)
+assert iseq(0, fn2_fv.distp_L2(func=one_f), eps=1e-4)
+assert iseq(0, fn2_fv.distp_L1(func=one_f), eps=1e-4)
+
+# +
+# checking values fn1 vs half_f [1-0.5=0.5]
+# ... on self.f
+assert fn1_fv.dist2_L2(func=half_f) == 0.25
+assert fn1_fv.dist_L2(func=half_f) == 0.5
+assert fn1_fv.dist_L1(func=half_f) == 0.5
+# ... on self.p
+assert fn1_fv.distp2_L2(func=half_f) == 0.25
+assert fn1_fv.distp_L2(func=half_f) == 0.5
+assert fn1_fv.distp_L1(func=half_f) == 0.5
+
+# # checking values fn2 vs half_f [1-x-0.5=0.5-x]
+# # ... on self.f
+assert iseq(1/12, fn2_fv.dist2_L2(func=half_f), eps=1e-3)        #int_0..1 (0.5-x)^2 = 1/12
+assert iseq(m.sqrt(1/12), fn2_fv.dist_L2(func=half_f), eps=1e-3)
+assert iseq(1/4, fn2_fv.dist_L1(func=half_f), eps=1e-4)
+# # ... on self.p
+assert iseq(0.25, fn2_fv.distp2_L2(func=half_f), eps=1e-4)
+assert iseq(0.5, fn2_fv.distp_L2(func=half_f), eps=1e-4)
+assert iseq(0.5, fn2_fv.distp_L1(func=half_f), eps=1e-4)
 # -
 
 # ### curve fitting
