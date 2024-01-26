@@ -401,10 +401,9 @@ k = 5**4
 
 # +
 k = 6**4
-x_mid = (k/2)**0.25
-y_f = SolidlySwapFunction(k=k)
 
 x_mid = (k/2)**0.25
+y_f = SolidlySwapFunction(k=k)
 ratio_f = lambda x: y_f(x)/x
 r0 = (
     f.goalseek(func=ratio_f, target = 2.6),
@@ -414,28 +413,35 @@ r0 = (
 r = tuple(round(vv/r0[1],4) for vv in r0)
 print(r)
 x_min_r, _, x_max_r = r
-
 x_min, x_max = x_min_r*x_mid, x_max_r*x_mid
-k**0.25, x_min, x_mid, x_max 
+fv_template = f.FunctionVector(kernel=f.Kernel(x_min=x_min, x_max=x_max, kernel=f.Kernel.FLAT))
 
-# +
-x_mid = (k/2)**0.25
-# set up the invariant and the swap function
-iv = SolidlyInvariant()
-y_f = SolidlySwapFunction(k=k)
-ratio_f = lambda x: y_f(x)/x
 x_v = np.linspace(0,10,1000)
 x_v[0] = x_v[1]/2
 
+k**0.25, x_min, x_mid, x_max 
+# -
 
+# ### Generic curve fitting
+
+
+# +
 # solidly
-yy_solidly_v = [y_f(xx) for xx in x_v]
+y_fv = fv_template.wrap(y_f)
+yy_solidly_v = [y_fv(xx) for xx in x_v]
+yp_solidly_v = [y_fv.p(xx) for xx in x_v]
+ya = y_f(x_min)
 
 # constant product
-ps=0.06
-fv_template = f.FunctionVector(kernel=f.Kernel(x_min=x_min, x_max=x_max, kernel=f.Kernel.FLAT))
-match_fv = fv_template.wrap(f.LCPMM.from_xpxp(xa=x_min, xb=x_max, pa=1+ps, pb=1-ps, y0=448))
+ps=0.11
+params_opt_L2s = {'k': 4999.920086411355, 'x0': 65.96403685971154, 'y0': 65.36154243491612}
+params_opt = {'k': 4999.920086411355, 'x0': 65.96403685971154, 'y0': 65.36154243491612}
+match_fv = fv_template.wrap(f.LCPMM.from_xpxp(xa=x_min, xb=x_max, pa=1+ps, pb=1-ps, ya=ya))
+match_opt_fv = match_fv.wrap(match_fv.el[0].update(**params_opt))
 yy_match_v = [match_fv(xx) for xx in x_v]
+yp_match_v = [match_fv.p(xx) for xx in x_v]
+yy_match_opt_v = [match_opt_fv(xx) for xx in x_v]
+yp_match_opt_v = [match_opt_fv.p(xx) for xx in x_v]
 
 # rays
 mm = 2.6
@@ -446,25 +452,193 @@ yy_ray2_v = [1/mm*xx for xx in x_v]
 C = 0.5**(0.25)
 kk = k**0.25
 yy_tang_v = [C*kk - (xx-C*kk) for xx in x_v]
-
-# plot
+# +
+# plot 1
 plt.plot(x_v, yy_solidly_v, label=f"Solidly (k={k})")
-plt.plot(x_v, yy_match_v, label=f"Match")
+plt.plot(x_v, yy_match_v, label=f"Match (ps={ps})")
+plt.plot(x_v, yy_match_opt_v, label=f"Match (optimized)")
 plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
 plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
 plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
-
 plt.grid(True)
 plt.title(f"Matching a Solidly curve")
 plt.xlabel("x")
 plt.ylabel("y")
 plt.legend()
+plt.xlim(0, 10)
+plt.ylim(0, 10)
+plt.savefig("/Users/skl/Desktop/sol_img_matching1.jpg")
+plt.show()
 
-# plt.xlim(0, 10)
-# plt.ylim(0, 10)
+# plot 2
+plt.plot(x_v, yy_solidly_v, label=f"Solidly (k={k})")
+plt.plot(x_v, yy_match_v, label=f"Match (ps={ps})")
+plt.plot(x_v, yy_match_opt_v, label=f"Match (optimized)")
+plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
+plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
+plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
+plt.grid(True)
+plt.title(f"Matching a Solidly curve")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.legend()
+plt.xlim(1, 4)
+plt.ylim(6, 9)
+plt.savefig("/Users/skl/Desktop/sol_img_matching2.jpg")
 plt.show()
-plt.plot(x_v, yy_match_v, label=f"Match")
+
+# plot 3
+plt.plot(x_v, yy_solidly_v, label=f"Solidly (k={k})")
+plt.plot(x_v, yy_match_v, label=f"Match (ps={ps})")
+plt.plot(x_v, yy_match_opt_v, label=f"Match (optimized)")
+plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
+plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
+plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
+plt.grid(True)
+plt.title(f"Matching a Solidly curve")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.legend()
+plt.xlim(2.8, 3)
+plt.ylim(7, 7.5)
+plt.savefig("/Users/skl/Desktop/sol_img_matching3.jpg")
 plt.show()
+
+# plot 4
+plt.plot(x_v, yy_solidly_v, label=f"Solidly (k={k})")
+plt.plot(x_v, yy_match_v, label=f"Match (ps={ps})")
+plt.plot(x_v, yy_match_opt_v, label=f"Match (optimized)")
+plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
+plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
+plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
+plt.grid(True)
+plt.title(f"Matching a Solidly curve")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.legend()
+plt.xlim(4, 6)
+plt.ylim(4, 6)
+plt.savefig("/Users/skl/Desktop/sol_img_matching4.jpg")
+plt.show()
+# +
+# plot 1
+plt.plot(x_v, yp_solidly_v, label=f"Solidly (k={k})")
+plt.plot(x_v, yp_match_v, label=f"Match (ps={ps})")
+plt.plot(x_v, yp_match_opt_v, label=f"Match (optimized)")
+# plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
+# plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
+# plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
+plt.grid(True)
+plt.title(f"Matching a Solidly curve (prices)")
+plt.xlabel("x")
+plt.ylabel("p")
+plt.legend()
+plt.xlim(0, 10)
+plt.ylim(0, 2)
+plt.savefig("/Users/skl/Desktop/sol_img_matchingp1.jpg")
+plt.show()
+
+# plot 2
+plt.plot(x_v, yp_solidly_v, label=f"Solidly (k={k})")
+plt.plot(x_v, yp_match_v, label=f"Match (ps={ps})")
+plt.plot(x_v, yp_match_opt_v, label=f"Match (optimized)")
+# plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
+# plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
+# plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
+plt.grid(True)
+plt.title(f"Matching a Solidly curve (prices)")
+plt.xlabel("x")
+plt.ylabel("p")
+plt.legend()
+plt.xlim(x_min, x_max)
+plt.ylim(0, 1.25)
+plt.savefig("/Users/skl/Desktop/sol_img_matchingp2.jpg")
+plt.show()
+
+# plot 3
+plt.plot(x_v, yp_solidly_v, label=f"Solidly (k={k})")
+plt.plot(x_v, yp_match_v, label=f"Match (ps={ps})")
+plt.plot(x_v, yp_match_opt_v, label=f"Match (optimized)")
+# plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
+# plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
+# plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
+plt.grid(True)
+plt.title(f"Matching a Solidly curve (prices)")
+plt.xlabel("x")
+plt.ylabel("p")
+plt.legend()
+plt.xlim(x_min, x_max)
+plt.ylim(0.8, 1.2)
+plt.savefig("/Users/skl/Desktop/sol_img_matchingp3.jpg")
+plt.show()
+
 # -
+
+
+match1_fv = match_fv.update()
+params0 = match1_fv.function().params()
+params0 = dict(k=5000, x0=60, y0=60)
+print(params0)
+params = y_fv.curve_fit(match1_fv.function(), params0, learning_rate=0.5, 
+                        iterations=50, tolerance=0.01, verbosity=y_fv.MM_VERBOSITY_LOW)
+print(params)
+
+# +
+# params = y_fv.curve_fit(match1_fv.function(), params0, learning_rate=0.5, 
+#                         iterations=50, tolerance=0.01, norm=y_fv.CF_NORM_L2S, verbosity=y_fv.MM_VERBOSITY_HIGH)
+# print(params)
+
+# +
+# params = y_fv.curve_fit(match1_fv.function(), params0, learning_rate=0.01, 
+#                         iterations=50, tolerance=0.01, norm=y_fv.CF_NORM_L2, verbosity=y_fv.MM_VERBOSITY_HIGH)
+# print(params)
+
+# +
+# params = y_fv.curve_fit(match1_fv.function(), params0, learning_rate=0.02, 
+#                         iterations=50, tolerance=0.01, norm=y_fv.CF_NORM_L1, verbosity=y_fv.MM_VERBOSITY_HIGH)
+# print(params)
+# -
+
+# ### Varying the price spread
+
+fv_flat = f.FunctionVector(kernel=f.Kernel(x_min=x_min, x_max=x_max, kernel=f.Kernel.FLAT))
+fv_triang = f.FunctionVector(kernel=f.Kernel(x_min=x_min, x_max=x_max, kernel=f.Kernel.TRIANGLE))
+
+# check different price spread curves
+ps_v = np.linspace(0,0.15, 100)
+ps_v[0] = ps_v[1]/2
+dist_flat_l2_ps_v = []
+dist_flat_l1_ps_v = []
+dist_triang_l2_ps_v = []
+dist_triang_l1_ps_v = []
+for psps in ps_v:
+    psps = max(psps, 0.001)
+    match_ps_f = f.LCPMM.from_xpxp(xa=x_min, xb=x_max, pa=1+psps, pb=1-psps, ya=ya)
+    match_ps_flat_fv = fv_flat.wrap(match_ps_f)
+    match_ps_triang_fv = fv_triang.wrap(match_ps_f)
+    dist_flat_l2 = match_ps_flat_fv.dist_L2(y_f)
+    dist_flat_l1 = match_ps_flat_fv.dist_L1(y_f)
+    dist_triang_l2 = match_ps_triang_fv.dist_L2(y_f)
+    dist_triang_l1 = match_ps_triang_fv.dist_L1(y_f)
+    #print(psps, dist)
+    dist_flat_l2_ps_v.append(dist_flat_l2)
+    dist_flat_l1_ps_v.append(dist_flat_l1)
+    dist_triang_l2_ps_v.append(dist_triang_l2)
+    dist_triang_l1_ps_v.append(dist_triang_l1)
+
+
+plt.plot(ps_v, dist_flat_l2_ps_v, label="L2 norm (flat)")
+plt.plot(ps_v, dist_flat_l1_ps_v, label="L1 norm (flat)")
+plt.plot(ps_v, dist_triang_l2_ps_v, label="L2 norm (triangle)")
+plt.plot(ps_v, dist_triang_l1_ps_v, label="L1 norm (triangle)")
+plt.grid()
+plt.xlabel("boundary price spread vs middle (0.1=10%)")
+plt.ylabel("matching error (norm)")
+#plt.title("Optimal price spread")
+plt.xlim(0,None)
+plt.ylim(0,0.05)
+plt.legend()
+plt.savefig("/Users/skl/Desktop/sol_img_optps.jpg")
+plt.show()
 
 
