@@ -604,6 +604,8 @@ print(params)
 fv_flat = f.FunctionVector(kernel=f.Kernel(x_min=x_min, x_max=x_max, kernel=f.Kernel.FLAT))
 fv_triang = f.FunctionVector(kernel=f.Kernel(x_min=x_min, x_max=x_max, kernel=f.Kernel.TRIANGLE))
 
+# swap curves
+
 # check different price spread curves
 ps_v = np.linspace(0,0.15, 100)
 ps_v[0] = ps_v[1]/2
@@ -633,12 +635,51 @@ plt.plot(ps_v, dist_triang_l2_ps_v, label="L2 norm (triangle)")
 plt.plot(ps_v, dist_triang_l1_ps_v, label="L1 norm (triangle)")
 plt.grid()
 plt.xlabel("boundary price spread vs middle (0.1=10%)")
-plt.ylabel("matching error (norm)")
+plt.ylabel("matching error on swap function (norm)")
 #plt.title("Optimal price spread")
 plt.xlim(0,None)
 plt.ylim(0,0.05)
 plt.legend()
 plt.savefig("/Users/skl/Desktop/sol_img_optps.jpg")
+plt.show()
+
+# price curves
+
+# check different price spread curves
+ps_v = np.linspace(0,0.15, 100)
+ps_v[0] = ps_v[1]/2
+dist_flat_l2_ps_v = []
+dist_flat_l1_ps_v = []
+dist_triang_l2_ps_v = []
+dist_triang_l1_ps_v = []
+for psps in ps_v:
+    psps = max(psps, 0.001)
+    match_ps_f = f.LCPMM.from_xpxp(xa=x_min, xb=x_max, pa=1+psps, pb=1-psps, ya=ya)
+    match_ps_flat_fv = fv_flat.wrap(match_ps_f)
+    match_ps_triang_fv = fv_triang.wrap(match_ps_f)
+    dist_flat_l2 = match_ps_flat_fv.distp_L2(y_f.p)
+    dist_flat_l1 = match_ps_flat_fv.distp_L1(y_f.p)
+    dist_triang_l2 = match_ps_triang_fv.distp_L2(y_f.p)
+    dist_triang_l1 = match_ps_triang_fv.distp_L1(y_f.p)
+    #print(psps, dist)
+    dist_flat_l2_ps_v.append(dist_flat_l2)
+    dist_flat_l1_ps_v.append(dist_flat_l1)
+    dist_triang_l2_ps_v.append(dist_triang_l2)
+    dist_triang_l1_ps_v.append(dist_triang_l1)
+
+
+plt.plot(ps_v, dist_flat_l2_ps_v, label="L2 norm (flat)")
+plt.plot(ps_v, dist_flat_l1_ps_v, label="L1 norm (flat)")
+plt.plot(ps_v, dist_triang_l2_ps_v, label="L2 norm (triangle)")
+plt.plot(ps_v, dist_triang_l1_ps_v, label="L1 norm (triangle)")
+plt.grid()
+plt.xlabel("boundary price spread vs middle (0.1=10%)")
+plt.ylabel("matching error on price function (norm)")
+#plt.title("Optimal price spread")
+plt.xlim(0,None)
+plt.ylim(0,0.03)
+plt.legend()
+plt.savefig("/Users/skl/Desktop/sol_img_optpsp.jpg")
 plt.show()
 
 
