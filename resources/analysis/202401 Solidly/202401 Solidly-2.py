@@ -433,7 +433,7 @@ yp_solidly_v = [y_fv.p(xx) for xx in x_v]
 ya = y_f(x_min)
 
 # constant product
-ps=0.11
+ps=0.04
 params_opt_L2s = {'k': 4999.920086411355, 'x0': 65.96403685971154, 'y0': 65.36154243491612}
 params_opt = {'k': 4999.920086411355, 'x0': 65.96403685971154, 'y0': 65.36154243491612}
 match_fv = fv_template.wrap(f.LCPMM.from_xpxp(xa=x_min, xb=x_max, pa=1+ps, pb=1-ps, ya=ya))
@@ -456,7 +456,7 @@ yy_tang_v = [C*kk - (xx-C*kk) for xx in x_v]
 # plot 1
 plt.plot(x_v, yy_solidly_v, label=f"Solidly (k={k})")
 plt.plot(x_v, yy_match_v, label=f"Match (ps={ps})")
-plt.plot(x_v, yy_match_opt_v, label=f"Match (optimized)")
+#plt.plot(x_v, yy_match_opt_v, label=f"Match (optimized)")
 plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
 plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
 plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
@@ -473,7 +473,7 @@ plt.show()
 # plot 2
 plt.plot(x_v, yy_solidly_v, label=f"Solidly (k={k})")
 plt.plot(x_v, yy_match_v, label=f"Match (ps={ps})")
-plt.plot(x_v, yy_match_opt_v, label=f"Match (optimized)")
+#plt.plot(x_v, yy_match_opt_v, label=f"Match (optimized)")
 plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
 plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
 plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
@@ -490,7 +490,7 @@ plt.show()
 # plot 3
 plt.plot(x_v, yy_solidly_v, label=f"Solidly (k={k})")
 plt.plot(x_v, yy_match_v, label=f"Match (ps={ps})")
-plt.plot(x_v, yy_match_opt_v, label=f"Match (optimized)")
+#plt.plot(x_v, yy_match_opt_v, label=f"Match (optimized)")
 plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
 plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
 plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
@@ -507,7 +507,7 @@ plt.show()
 # plot 4
 plt.plot(x_v, yy_solidly_v, label=f"Solidly (k={k})")
 plt.plot(x_v, yy_match_v, label=f"Match (ps={ps})")
-plt.plot(x_v, yy_match_opt_v, label=f"Match (optimized)")
+#plt.plot(x_v, yy_match_opt_v, label=f"Match (optimized)")
 plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
 plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
 plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
@@ -524,7 +524,7 @@ plt.show()
 # plot 1
 plt.plot(x_v, yp_solidly_v, label=f"Solidly (k={k})")
 plt.plot(x_v, yp_match_v, label=f"Match (ps={ps})")
-plt.plot(x_v, yp_match_opt_v, label=f"Match (optimized)")
+#plt.plot(x_v, yp_match_opt_v, label=f"Match (optimized)")
 # plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
 # plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
 # plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
@@ -541,7 +541,7 @@ plt.show()
 # plot 2
 plt.plot(x_v, yp_solidly_v, label=f"Solidly (k={k})")
 plt.plot(x_v, yp_match_v, label=f"Match (ps={ps})")
-plt.plot(x_v, yp_match_opt_v, label=f"Match (optimized)")
+#plt.plot(x_v, yp_match_opt_v, label=f"Match (optimized)")
 # plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
 # plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
 # plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
@@ -558,7 +558,7 @@ plt.show()
 # plot 3
 plt.plot(x_v, yp_solidly_v, label=f"Solidly (k={k})")
 plt.plot(x_v, yp_match_v, label=f"Match (ps={ps})")
-plt.plot(x_v, yp_match_opt_v, label=f"Match (optimized)")
+#plt.plot(x_v, yp_match_opt_v, label=f"Match (optimized)")
 # plt.plot(x_v, yy_ray1_v, marker=None, linestyle='dotted', color="#aaa", label=f"ray (m={mm})")
 # plt.plot(x_v, yy_ray2_v, marker=None, linestyle='dotted', color="#aaa")
 # plt.plot(x_v, yy_tang_v, marker=None, linestyle='--', color="#aaa", label="tangent")
@@ -629,16 +629,16 @@ for psps in ps_v:
     dist_triang_l1_ps_v.append(dist_triang_l1)
 
 
-plt.plot(ps_v, dist_flat_l2_ps_v, label="L2 norm (flat)")
-plt.plot(ps_v, dist_flat_l1_ps_v, label="L1 norm (flat)")
-plt.plot(ps_v, dist_triang_l2_ps_v, label="L2 norm (triangle)")
-plt.plot(ps_v, dist_triang_l1_ps_v, label="L1 norm (triangle)")
+plt.plot(ps_v, dist_flat_l1_ps_v, color="blue", label="L1 norm (flat)")
+plt.plot(ps_v, dist_flat_l2_ps_v, color="blue", linestyle="--", label="L2 norm (flat)")
+plt.plot(ps_v, dist_triang_l1_ps_v, color="red", label="L1 norm (triangle)")
+plt.plot(ps_v, dist_triang_l2_ps_v, color="red", linestyle="--", label="L2 norm (triangle)")
 plt.grid()
 plt.xlabel("boundary price spread vs middle (0.1=10%)")
 plt.ylabel("matching error on swap function (norm)")
 #plt.title("Optimal price spread")
 plt.xlim(0,None)
-plt.ylim(0,0.05)
+plt.ylim(0,0.03)
 plt.legend()
 plt.savefig("/Users/skl/Desktop/sol_img_optps.jpg")
 plt.show()
@@ -668,10 +668,10 @@ for psps in ps_v:
     dist_triang_l1_ps_v.append(dist_triang_l1)
 
 
-plt.plot(ps_v, dist_flat_l2_ps_v, label="L2 norm (flat)")
-plt.plot(ps_v, dist_flat_l1_ps_v, label="L1 norm (flat)")
-plt.plot(ps_v, dist_triang_l2_ps_v, label="L2 norm (triangle)")
-plt.plot(ps_v, dist_triang_l1_ps_v, label="L1 norm (triangle)")
+plt.plot(ps_v, dist_flat_l1_ps_v, color="blue", label="L1 norm (flat)")
+plt.plot(ps_v, dist_flat_l2_ps_v, color="blue", linestyle="--", label="L2 norm (flat)")
+plt.plot(ps_v, dist_triang_l1_ps_v, color="red", label="L1 norm (triangle)")
+plt.plot(ps_v, dist_triang_l2_ps_v, color="red", linestyle="--", label="L2 norm (triangle)")
 plt.grid()
 plt.xlabel("boundary price spread vs middle (0.1=10%)")
 plt.ylabel("matching error on price function (norm)")
