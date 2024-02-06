@@ -1,45 +1,60 @@
 Optimizer
 =========
+.. automodule:: tools.optimizer
 
-Helpers and Base
-----------------
 
-DCBase
-^^^^^^
+Main Optimizer Modules
+----------------------
 
-.. automodule:: tools.optimizer.dcbase
+All classes in this section derive from the
+`CPCArbOptimizer` base class that is discussed in more
+detail below:
+
+.. automodule:: tools.optimizer.cpcarboptimizer
+    :noindex:
+
+MargPOptimizer
+^^^^^^^^^^^^^^
+.. automodule:: tools.optimizer.margpoptimizer
+.. autoclass:: MargPOptimizer
+    :members:
+    :exclude-members: margp_optimizer
+
+
+PairOptimizer
+^^^^^^^^^^^^^
+.. automodule:: tools.optimizer.pairoptimizer
+.. autoclass:: PairOptimizer
+    :members:
+
+ConvexOptimizer
+^^^^^^^^^^^^^^^
+.. automodule:: tools.optimizer.convexoptimizer
+.. autoclass:: ConvexOptimizer
+    :members:
+
+
+
+Base Classes
+------------
+
+CPCArbOptimizer
+^^^^^^^^^^^^^^^
+
+.. automodule:: tools.optimizer.cpcarboptimizer
+.. autoclass:: CPCArbOptimizer
     :members:
 
 
 Optimizer Base
 ^^^^^^^^^^^^^^
-
 .. automodule:: tools.optimizer.base
+.. autoclass:: OptimizerBase
     :members:
 
 
-CPCArbOptimizer Base
-^^^^^^^^^^^^^^^^^^^^
-
-.. automodule:: tools.optimizer.cpcarboptimizer
-    :members:
-
-
-MargPOptimizer
---------------
-
-.. automodule:: tools.optimizer.margpoptimizer
-    :members:
-
-
-PairOptimizer
--------------
-
-.. automodule:: tools.optimizer.pairoptimizer
-    :members:
-
-ConvexOptimizer
----------------
-
-.. automodule:: tools.optimizer.convexoptimizer
+DCBase
+^^^^^^
+.. automodule:: tools.optimizer.dcbase
+.. autoclass:: DCBase
     :members:
