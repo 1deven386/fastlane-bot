@@ -1,11 +1,12 @@
 """
 base class for representing a generic curve in the context of the optimizer*
 
-(c) Copyright Bprotocol foundation 2023. 
-Licensed under MIT
-
 *whilst the name of the file ("cpc") alludes to constant product curves, this is for 
 historical reasons only; this class deal with generic curves
+
+---
+(c) Copyright Bprotocol foundation 2023. 
+Licensed under MIT
 
 NOTE: this class is not part of the API of the Carbon protocol, and you must expect breaking
 changes even in minor version updates. Use at your own risk.

@@ -7,11 +7,12 @@ slow and, importantly, converges badly on levered curves (eg Uniswap v3, Carbon)
 we may continue research into this method, at this stage it is recommended to use the 
 marginal price optimizer instead.
 
-(c) Copyright Bprotocol foundation 2023. 
-Licensed under MIT
-
 This module is still subject to active research, and comments and suggestions are welcome. 
 The corresponding author is Stefan Loesch <stefan@bancor.network>
+
+---
+(c) Copyright Bprotocol foundation 2023. 
+Licensed under MIT
 """
 __VERSION__ = "5.0"
 __DATE__ = "26/Jul/2023"

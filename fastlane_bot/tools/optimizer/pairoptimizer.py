@@ -6,11 +6,13 @@ The pair optimizer uses a marginal price method in one dimension to find the opt
 solution. It uses a bisection method to find the root of the transfer equation, therefore
 it only work for a single pair. To use it on multiple pairs, use MargPOptimizer instead.
 
-(c) Copyright Bprotocol foundation 2023. 
-Licensed under MIT
 
 This module is still subject to active research, and comments and suggestions are welcome. 
 The corresponding author is Stefan Loesch <stefan@bancor.network>
+
+---
+(c) Copyright Bprotocol foundation 2023. 
+Licensed under MIT
 """
 __VERSION__ = "6.0.1"
 __DATE__ = "21/Sep/2023"

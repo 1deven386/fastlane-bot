@@ -1,6 +1,7 @@
 """
 representing a levered constant product curve
 
+---
 (c) Copyright Bprotocol foundation 2023. 
 Licensed under MIT
 

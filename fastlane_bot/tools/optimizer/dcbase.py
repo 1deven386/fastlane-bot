@@ -1,11 +1,12 @@
 """
 optimization library -- dataclass base module
 
-(c) Copyright Bprotocol foundation 2023. 
-Licensed under MIT
-
 This module is still subject to active research, and comments and suggestions are welcome. 
 The corresponding author is Stefan Loesch <stefan@bancor.network>
+
+---
+(c) Copyright Bprotocol foundation 2023. 
+Licensed under MIT
 """
 from dataclasses import dataclass, field, fields, asdict, astuple, InitVar
 

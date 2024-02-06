@@ -8,11 +8,12 @@ pair are equal, and all marginal prices across pairs follow the usual no arbitra
 Therefore the problem reduces to a goal seek -- we need to find the point on the hyper surface
 that satisfied the desired boundary conditions.
 
-(c) Copyright Bprotocol foundation 2023. 
-Licensed under MIT
-
 This module is still subject to active research, and comments and suggestions are welcome. 
 The corresponding author is Stefan Loesch <stefan@bancor.network>
+
+---
+(c) Copyright Bprotocol foundation 2023. 
+Licensed under MIT
 """
 __VERSION__ = "5.2"
 __DATE__ = "15/Sep/2023"
